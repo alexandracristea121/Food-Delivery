@@ -13,6 +13,9 @@
         android:theme="@style/Theme.Licenta_Food_Ordering"
         tools:targetApi="31">
         <activity
+            android:name=".recentOrderItems"
+            android:exported="false" />
+        <activity
             android:name="com.examples.licenta_food_ordering.DetailsActivity"
             android:exported="false" />
         <activity
@@ -23,9 +26,7 @@
             android:exported="true" />
         <activity
             android:name="com.examples.licenta_food_ordering.SignActivity"
-            android:exported="true">
-
-        </activity>
+            android:exported="true"></activity>
         <activity
             android:name="com.examples.licenta_food_ordering.LoginActivity"
             android:exported="true">
@@ -44,7 +45,7 @@
         <activity
             android:name="com.examples.licenta_food_ordering.MainActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustPan"/>
+            android:windowSoftInputMode="adjustPan" />
     </application>
 
 </manifest>

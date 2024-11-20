@@ -1,12 +1,15 @@
 package com.examples.licenta_food_ordering
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.licenta_food_ordering.R
 import com.example.licenta_food_ordering.databinding.ActivityPayOutBinding
+import com.examples.licenta_food_ordering.model.CartItems
+import com.examples.licenta_food_ordering.model.OrderDetails
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -60,15 +63,52 @@ class PayOutActivity : AppCompatActivity() {
         binding.backButton.setOnClickListener {
             finish()
         }
+
         binding.placeMyOrder.setOnClickListener {
-            val bottomSheetDialog = CongratsBottomSheet()
-            bottomSheetDialog.show(supportFragmentManager, "Test")
+            //get data from textview
+            name=binding.name.text.toString().trim()
+            address=binding.address.text.toString().trim()
+            phone=binding.phone.text.toString().trim()
+            if(name.isBlank() && address.isBlank() && phone.isBlank()){
+                Toast.makeText(this, "Please enter all the details", Toast.LENGTH_SHORT).show()
+            }else{
+                placeOrder()
+            }
+
         }
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+    }
+
+    private fun placeOrder() {
+        userId=auth.currentUser?.uid?:""
+        val time=System.currentTimeMillis()
+        val itemPushKey=databaseReference.child("OrderDetails").push().key
+        val orderDetails=OrderDetails(userId, name, foodItemName, foodItemPrice, foodItemImage, foodItemQuantities, address, totalAmount, phone, time, itemPushKey, false, false)
+        val orderReference=databaseReference.child("OrderDetails").child(itemPushKey!!)
+        orderReference.setValue(orderDetails).addOnSuccessListener {
+            val bottomSheetDialog = CongratsBottomSheet()
+            bottomSheetDialog.show(supportFragmentManager, "Test")
+            removeItemFromCart()
+            addOrderToHistory(orderDetails)
+        }
+            .addOnFailureListener {
+                Toast.makeText(this, "failed to order", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun addOrderToHistory(orderDetails: OrderDetails) {
+        databaseReference.child("user").child(userId).child("BuyHistory").child(orderDetails.itemPushkey!!).setValue(orderDetails).addOnSuccessListener {
+
+        }
+    }
+
+    private fun removeItemFromCart() {
+        val cartItemsReference=databaseReference.child("user").child(userId).child("CartItems")
+        cartItemsReference.removeValue()
     }
 
     private fun calculateTotalAmount(): Int {
