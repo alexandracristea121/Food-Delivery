@@ -1,6 +1,7 @@
 package com.examples.licenta_food_ordering.Fragment
 
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -9,9 +10,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
-import com.example.licenta_food_ordering.R
 import com.example.licenta_food_ordering.databinding.FragmentHistoryBinding
-import com.example.licenta_food_ordering.recentOrderItems
+import com.example.licenta_food_ordering.RecentOrderItems
 import com.examples.licenta_food_ordering.adaptar.BuyAgainAdapter
 import com.examples.licenta_food_ordering.model.OrderDetails
 import com.google.firebase.auth.FirebaseAuth
@@ -20,7 +20,6 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.internal.InternalTokenResult
 
 class HistoryFragment : Fragment() {
     private lateinit var binding: FragmentHistoryBinding
@@ -28,7 +27,7 @@ class HistoryFragment : Fragment() {
     private lateinit var database: FirebaseDatabase
     private lateinit var auth: FirebaseAuth
     private lateinit var userId: String
-    private var listOfOrderItem: MutableList<OrderDetails> = mutableListOf()
+    private var listOfOrderItem: ArrayList<OrderDetails> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,13 +48,23 @@ class HistoryFragment : Fragment() {
         binding.recentbuyitem.setOnClickListener {
             seeItemsRecentBuy()
         }
+
+        binding.receivedButton.setOnClickListener {
+            updateOrderStatus()
+        }
         return binding.root
+    }
+
+    private fun updateOrderStatus() {
+        val itemPushKey=listOfOrderItem[0].itemPushkey
+        val completeOrderReference=database.reference.child("CompletedOrder").child(itemPushKey!!)
+        completeOrderReference.child("paymentReceived").setValue(true)
     }
 
     private fun seeItemsRecentBuy() {
         listOfOrderItem.firstOrNull()?.let { recentBuy->
-            val intent=Intent(requireContext(), recentOrderItems::class.java)
-            intent.putExtra("RecentBuyOrderItem", recentBuy)
+            val intent=Intent(requireContext(), RecentOrderItems::class.java)
+            intent.putExtra("RecentBuyOrderItem", listOfOrderItem)
             startActivity(intent)
         }
     }
@@ -100,9 +109,11 @@ class HistoryFragment : Fragment() {
                 val uri = Uri.parse(image)
                 Glide.with(requireContext()).load(uri).into(buyAgainFoodImage)
 
-                listOfOrderItem.reverse()
-                if (listOfOrderItem.isNotEmpty()) {
+                val isOrderIsAccepted=listOfOrderItem[0].orderAccepted
 
+                if(isOrderIsAccepted){
+                    orderedStatus.background.setTint(Color.GREEN)
+                    receivedButton.visibility=View.VISIBLE
                 }
             }
         }

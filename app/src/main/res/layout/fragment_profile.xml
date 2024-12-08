@@ -1,19 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_gravity="right"
+    android:layout_marginTop="20dp"
     android:background="@color/white"
     android:paddingStart="6dp"
-    android:paddingEnd="6dp"
-    >
+    android:paddingEnd="6dp">
 
     <LinearLayout
         android:layout_width="405dp"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_gravity="top"> <!-- Asigură că acest LinearLayout rămâne sus -->
+        android:layout_gravity="top"
+        android:orientation="vertical"> <!-- Asigură că acest LinearLayout rămâne sus -->
+
+        <Button
+            android:backgroundTint="@color/textColor"
+            android:id="@+id/editButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginTop="20dp"
+            android:text="Edit Profile" />
 
         <LinearLayout
             android:layout_width="match_parent"
