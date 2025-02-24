@@ -8,10 +8,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 class RetrofitClient {
 
     companion object {
-
         private val retrofit by lazy {
             Retrofit.Builder()
-                .baseUrl("https://c5f0-89-136-45-154.ngrok-free.app") // TODO: change all the time
+                .baseUrl("https://8ed5-89-136-45-154.ngrok-free.app") // TODO: change all the time
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(
                     OkHttpClient.Builder().addInterceptor(LoggingInterceptor()).build()
@@ -27,7 +26,7 @@ class RetrofitClient {
 
 fun LoggingInterceptor(): HttpLoggingInterceptor {
     val loggingInterceptor = HttpLoggingInterceptor()
-    loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
+    loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY  // Log request and response body
 
     return loggingInterceptor
 }

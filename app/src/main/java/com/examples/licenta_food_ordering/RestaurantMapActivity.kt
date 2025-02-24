@@ -35,17 +35,22 @@ class RestaurantMapActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_restaurant_map)
 
+        // Set the status bar color to white
         window.statusBarColor = ContextCompat.getColor(this, R.color.white)
 
+        // Use WindowInsetsController for modern status bar styling
         WindowCompat.setDecorFitsSystemWindows(window, true)
         val insetsController = WindowInsetsControllerCompat(window, window.decorView)
         insetsController.isAppearanceLightStatusBars = true
 
+        // Initialize Firebase
         database = FirebaseDatabase.getInstance()
         restaurantsRef = database.getReference("Restaurants")
 
+        // Initialize the FusedLocationProviderClient
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        // Check if Google Play services is available
         if (isGooglePlayServicesAvailable()) {
             val mapFragment = SupportMapFragment.newInstance()
             supportFragmentManager.beginTransaction()
@@ -61,6 +66,7 @@ class RestaurantMapActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
+        // Check if the app has permission to access location
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -70,10 +76,13 @@ class RestaurantMapActivity : AppCompatActivity(), OnMapReadyCallback {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
+            // Enable the My Location layer
             mMap.isMyLocationEnabled = true
 
+            // Get the last known location of the device
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
+                    // If a location is found, move the camera to that location
                     location?.let {
                         val currentLatLng = LatLng(it.latitude, it.longitude)
                         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
@@ -82,6 +91,7 @@ class RestaurantMapActivity : AppCompatActivity(), OnMapReadyCallback {
                     }
                 }
         } else {
+            // If permission is not granted, request permission
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -89,6 +99,7 @@ class RestaurantMapActivity : AppCompatActivity(), OnMapReadyCallback {
             )
         }
 
+        // Fetch restaurant data from Firebase and add markers
         fetchRestaurants()
     }
 
@@ -105,10 +116,12 @@ class RestaurantMapActivity : AppCompatActivity(), OnMapReadyCallback {
                                 .title(restaurant.name)
                         )
 
+                        // Set a tag on the marker (restaurant ID) to identify it later
                         marker?.tag = restaurant.id
                     }
                 }
 
+                // Set up a listener for when a marker is clicked
                 mMap.setOnMarkerClickListener { marker ->
                     val restaurantId = marker.tag as? String
                     if (restaurantId != null) {
@@ -119,7 +132,7 @@ class RestaurantMapActivity : AppCompatActivity(), OnMapReadyCallback {
                         intent.putExtra("RESTAURANT_ID", restaurantId)
                         startActivity(intent)
                     }
-                    true
+                    true // Indicate that we've handled the click
                 }
             }
 
@@ -162,6 +175,6 @@ data class Restaurant(
     val longitude: Double = 0.0,
     val address: String = "",
     val menu: Map<String, MenuItem> = mapOf(),
-    val categories: List<String> = listOf(),
+    val categories: List<String> = listOf(),  // Default empty list
     val adminUserId: String = ""
 )

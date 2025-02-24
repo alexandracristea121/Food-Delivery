@@ -46,62 +46,71 @@ class RestaurantDetailsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRestaurantDetailsBinding.inflate(layoutInflater)
-        enableEdgeToEdge()
+        enableEdgeToEdge()  // Optional: for edge-to-edge layout
         setContentView(binding.root)
 
+        // Set up Firebase reference
         database = FirebaseDatabase.getInstance()
         restaurantsRef = database.getReference("Restaurants")
 
+        // Get the restaurant ID from the intent
         restaurantId = intent.getStringExtra("RESTAURANT_ID") ?: ""
 
+        // Find the UI elements
         nameTextView = findViewById(R.id.restaurantName)
         addressTextView = findViewById(R.id.restaurantAddress)
         backButton = findViewById(R.id.backButton)
         menuRecyclerView = findViewById(R.id.menuRecyclerView)
         categorySpinner = findViewById(R.id.categoryFilterSpinner)
 
-        menuRecyclerView.layoutManager = LinearLayoutManager(this)  //afișează elementele în listă verticală
-        menuAdapter = MenuAdapter(menuItems, this)  //Creează un adaptor pentru listarea meniului.
-        menuRecyclerView.adapter = menuAdapter  //le asociaza
+        // Set up RecyclerView for menu items
+        menuRecyclerView.layoutManager = LinearLayoutManager(this)
+        menuAdapter = MenuAdapter(menuItems, this)
+        menuRecyclerView.adapter = menuAdapter
 
+        // Set up the back button click listener
         backButton.setOnClickListener {
             onBackPressed()
         }
 
+        // Fetch restaurant details
         fetchRestaurantDetails()
 
+        // Set up the Bottom Navigation and handle fragment switching
         setupBottomNavigation()
     }
 
+    // Set up Bottom Navigation functionality
     private fun setupBottomNavigation() {
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
 
+        // Hide the bottom navigation if you want it to disappear in the restaurant details page
         bottomNavigationView.visibility = View.VISIBLE
 
         bottomNavigationView.setOnNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.homeFragment -> {
-                    switchToFragment(HomeFragment())
+                    switchToFragment(HomeFragment()) // Manually switch to the HomeFragment
                     true
                 }
 
                 R.id.profileFragment -> {
-                    switchToFragment(ProfileFragment())
+                    switchToFragment(ProfileFragment()) // Switch to the ProfileFragment
                     true
                 }
 
                 R.id.searchFragment -> {
-                    switchToFragment(SearchFragment())
+                    switchToFragment(SearchFragment()) // Switch to the SearchFragment
                     true
                 }
 
                 R.id.cartFragment -> {
-                    switchToFragment(CartFragment())
+                    switchToFragment(CartFragment()) // Switch to the CartFragment
                     true
                 }
 
                 R.id.historyFragment -> {
-                    switchToFragment(HistoryFragment())
+                    switchToFragment(HistoryFragment()) // Switch to the HistoryFragment
                     true
                 }
 
@@ -110,35 +119,41 @@ class RestaurantDetailsActivity : AppCompatActivity() {
         }
     }
 
+    // Function to switch between fragments
     private fun switchToFragment(fragment: Fragment) {
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.fragmentContainerView, fragment)
-        transaction.addToBackStack(null)
+        transaction.addToBackStack(null)  // Optional: add fragment to back stack for back navigation
         transaction.commit()
     }
 
+    // Fetch restaurant details from Firebase
     private fun fetchRestaurantDetails() {
         restaurantsRef.child(restaurantId).get().addOnSuccessListener { snapshot ->
             if (snapshot.exists()) {
                 val restaurant = snapshot.getValue(Restaurant::class.java)
                 if (restaurant != null) {
+                    // Set restaurant details on the UI
                     nameTextView.text = restaurant.name
                     addressTextView.text = restaurant.address
 
-                    val adminUserId = restaurant.adminUserId
+                    // Store admin user ID in SharedPreferences
+                    val adminUserId = restaurant.adminUserId // Assuming 'adminUserId' is a field in your Restaurant model
                     if (adminUserId != null) {
                         SharedPrefsHelper.saveAdminUserId(this, adminUserId)
                     }
 
+                    // Fetch categories from the menu items
                     fetchCategories()
 
-                    val menu = restaurant.menu
+                    // Fetch the menu items
+                    val menu = restaurant.menu // Map of menu items
                     if (menu.isNotEmpty()) {
                         menuItems.clear()
                         for (menuItem in menu.values) {
                             menuItems.add(menuItem)
                         }
-                        menuAdapter.notifyDataSetChanged()
+                        menuAdapter.notifyDataSetChanged() // Notify adapter of new data
                     }
                 }
             } else {
@@ -149,6 +164,7 @@ class RestaurantDetailsActivity : AppCompatActivity() {
         }
     }
 
+    // Fetch categories from the menu items
     private fun fetchCategories() {
         val menuRef = restaurantsRef.child(restaurantId).child("menu")
 
@@ -162,7 +178,7 @@ class RestaurantDetailsActivity : AppCompatActivity() {
             }
 
             categories = uniqueCategories.toMutableList()
-            categories.add(0, "All")
+            categories.add(0, "Any Category") // Add "All" option for displaying all menu items
 
             setupCategoryFilter()
         }.addOnFailureListener {
@@ -170,6 +186,7 @@ class RestaurantDetailsActivity : AppCompatActivity() {
         }
     }
 
+    // Set up the category filter Spinner
     private fun setupCategoryFilter() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -183,10 +200,10 @@ class RestaurantDetailsActivity : AppCompatActivity() {
                 id: Long
             ) {
                 val selectedCategory = categories[position]
-                if (selectedCategory == "All") {
-                    fetchMenuItems()
+                if (selectedCategory == "Any Category") {
+                    fetchMenuItems() // Fetch all items if "All" is selected
                 } else {
-                    fetchMenuItemsByCategory(selectedCategory)
+                    fetchMenuItemsByCategory(selectedCategory) // Fetch items for the selected category
                 }
             }
 
@@ -194,6 +211,7 @@ class RestaurantDetailsActivity : AppCompatActivity() {
         }
     }
 
+    // Fetch all menu items from Firebase
     private fun fetchMenuItems() {
         val menuRef: DatabaseReference =
             database.getReference("Restaurants").child(restaurantId).child("menu")
@@ -211,6 +229,7 @@ class RestaurantDetailsActivity : AppCompatActivity() {
         }
     }
 
+    // Fetch menu items by category from Firebase
     private fun fetchMenuItemsByCategory(category: String) {
         val menuRef: DatabaseReference =
             database.getReference("Restaurants").child(restaurantId).child("menu")
