@@ -189,7 +189,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
                             .title("Curier")
                     )
                 } else {
-                    Log.d("SearchFragment", "Courier at $courierLocation is outside the hotspot.")
+                    Log.d("SearchFragment", "Courier at $courierLocation is  outside the hotspot.")
                 }
             }
         }
